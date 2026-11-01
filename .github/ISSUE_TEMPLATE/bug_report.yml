@@ -1,0 +1,19 @@
+name: 🐛 Bug Report
+description: Báo cáo lỗi trong code hoặc kết quả thực nghiệm
+labels: ["bug"]
+body:
+  - type: textarea
+    attributes:
+      label: Mô tả lỗi
+      description: Mô tả rõ lỗi gặp phải là gì
+  - type: textarea
+    attributes:
+      label: Cách tái hiện lỗi
+      description: Các bước để tái hiện lỗi
+  - type: textarea
+    attributes:
+      label: Kết quả mong đợi
+  - type: textarea
+    attributes:
+      label: Environment
+      description: "Python version, OS, branch đang làm việc"

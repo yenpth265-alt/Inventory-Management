@@ -1,0 +1,40 @@
+# Data
+data/raw/
+data/external/
+*.csv
+*.zip
+*.parquet
+*.h5
+*.pkl
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.env
+*.egg-info/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+*.nbconvert.ipynb
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Experiments & Logs
+experiments/logs/
+experiments/results/
+wandb/
+mlruns/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+*.env
+secrets.yaml

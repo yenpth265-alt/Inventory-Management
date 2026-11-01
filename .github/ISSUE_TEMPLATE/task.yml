@@ -1,0 +1,22 @@
+name: 📋 Task / Feature Request
+description: Ghi nhận nhiệm vụ mới hoặc đề xuất tính năng
+labels: ["task"]
+body:
+  - type: textarea
+    attributes:
+      label: Mô tả nhiệm vụ
+      description: Nhiệm vụ cần làm là gì?
+  - type: textarea
+    attributes:
+      label: Mục tiêu đầu ra (Deliverable)
+      description: Kết quả/sản phẩm bàn giao là gì?
+  - type: dropdown
+    attributes:
+      label: Độ ưu tiên
+      options:
+        - "🔴 Cao (Deadline gần)"
+        - "🟡 Trung bình"
+        - "🟢 Thấp (Có thời gian)"
+  - type: input
+    attributes:
+      label: Người phụ trách

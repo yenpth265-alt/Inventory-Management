@@ -1,0 +1,33 @@
+# Core Data & ML
+pandas>=2.0.0
+numpy>=1.24.0
+pyarrow>=14.0.0
+scikit-learn>=1.3.0
+scipy>=1.11.0
+
+# Forecasting
+lightgbm>=4.0.0
+catboost>=1.2.0
+statsmodels>=0.14.0     # Croston, SBA, ARIMA
+neuralprophet>=0.9.0    # Neural forecasting baseline
+
+# Operations Research & Optimization
+pulp>=2.8.0             # MILP modeling
+ortools>=9.7.0          # Google OR-Tools solver
+
+# Reinforcement Learning
+gymnasium>=0.29.0       # RL environments (thay thế OpenAI Gym)
+stable-baselines3>=2.1.0  # PPO, SAC, DQN implementations
+torch>=2.0.0            # PyTorch backend cho RL
+
+# Visualization & Reporting
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.18.0
+streamlit>=1.28.0
+
+# Utilities
+pyyaml>=6.0             # Đọc file config YAML
+tqdm>=4.65.0            # Progress bar
+loguru>=0.7.0           # Logging đẹp hơn print()
+pytest>=7.4.0           # Unit testing
