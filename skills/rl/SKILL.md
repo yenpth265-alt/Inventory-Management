@@ -1,17 +1,6 @@
 ---
 name: mdp-rl-inventory-modeling
 description: Cẩm nang tác nghiệp quy chuẩn mô hình hóa MDP, thiết kế môi trường Gymnasium (Lost Sales, L >= 2) và huấn luyện, đánh giá Agent Deep RL (PPO, DQN) đối chuẩn cho bài toán quản trị tồn kho đa kỳ theo chuẩn Scopus Q1/Q2.
-version: 1.0.0
-author: Nguyễn Đào Nam Hải (Technical Lead)
-tags:
-  - reinforcement-learning
-  - mdp
-  - inventory-optimization
-  - ppo
-  - dqn
-  - gymnasium
-  - stable-baselines3
-  - scopus-benchmark
 ---
 
 # SKILL: Quy chuẩn Xây dựng & Đánh giá Học tăng cường (RL) cho Quản trị Tồn kho
