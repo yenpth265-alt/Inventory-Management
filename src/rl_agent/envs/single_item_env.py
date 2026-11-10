@@ -149,13 +149,18 @@ class SingleItemInventoryEnv(gym.Env):
         # Determine actual order quantity x_t
         if isinstance(action, (int, np.integer)):
             action_idx = int(action)
-            order_quantity = float(self.action_levels[action_idx])
+        elif isinstance(action, np.ndarray) and action.size == 1:
+            action_idx = int(action.item())
         elif isinstance(action, (float, np.floating)):
-            order_quantity = float(np.clip(action, 0.0, self.max_order_quantity))
-        elif isinstance(action, np.ndarray):
-            order_quantity = float(np.clip(action.item(), 0.0, self.max_order_quantity))
+            action_idx = int(action)
         else:
             raise ValueError(f"Unsupported action type: {type(action)}")
+
+        if 0 <= action_idx < len(self.action_levels):
+            order_quantity = float(self.action_levels[action_idx])
+        else:
+            # Fallback if an index is out of bounds or continuous quantity was passed
+            order_quantity = float(np.clip(action_idx, 0.0, self.max_order_quantity))
 
         # 1. Receive arriving orders that completed lead_time
         arrived_quantity = float(self.pipeline.popleft())
@@ -187,11 +192,13 @@ class SingleItemInventoryEnv(gym.Env):
         fixed_order_cost = self.fixed_ordering_cost if order_quantity > 0.0 else 0.0
         purchase_cost = self.unit_cost * order_quantity
 
-        ordering_cost = fixed_order_cost + purchase_cost
-        total_cost = holding_cost + stockout_cost + ordering_cost
+        # In inventory theory (Zipkin 2000, OR-Gym), operating replenishment cost consists of:
+        # Holding Cost + Shortage/Lost Sales Penalty + Fixed Setup Cost
+        operating_cost = holding_cost + stockout_cost + fixed_order_cost
+        total_cost = operating_cost + purchase_cost
 
-        # Reward is the negative of total operating cost
-        reward = -total_cost
+        # Reward signals the negative of operational replenishment cost to avoid purchase cost distortion
+        reward = -operating_cost
 
         # Revenue and Gross Profit metrics
         revenue = self.selling_price * sales
@@ -218,8 +225,9 @@ class SingleItemInventoryEnv(gym.Env):
             "stockout_cost": stockout_cost,
             "fixed_order_cost": fixed_order_cost,
             "purchase_cost": purchase_cost,
-            "ordering_cost": ordering_cost,
-            "total_cost": total_cost,
+            "ordering_cost": fixed_order_cost,
+            "operating_cost": operating_cost,
+            "total_cost": operating_cost,
             "revenue": revenue,
             "gross_profit": gross_profit,
             "service_level": 1.0 if lost_sales == 0.0 else 0.0,

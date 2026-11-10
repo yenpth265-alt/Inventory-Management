@@ -136,6 +136,16 @@ class TestSingleItemInventoryEnv:
         _, _, _, _, info_2 = env.step(action_order_0)
         assert info_2["arrived_quantity"] == 40.0
 
+    def test_action_types_mapping(self, test_config):
+        """Test that int, np.int64, and np.ndarray actions all map to correct discrete action levels."""
+        env = SingleItemInventoryEnv(test_config)
+        env.reset(seed=42)
+
+        # Action 7 corresponds to action_levels[7] = 40
+        for act in [7, np.int64(7), np.array(7), np.array([7])]:
+            _, _, _, _, info = env.step(act)
+            assert info["order_quantity"] == 40.0, f"Failed for action type {type(act)}: got {info['order_quantity']}"
+
     def test_seed_reproducibility(self, test_config):
         """Test that identical seeds generate bit-exact identical trajectories."""
         env1 = SingleItemInventoryEnv(test_config)
