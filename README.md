@@ -1,52 +1,19 @@
 # 📦 Inventory Optimization v2 — Data-Driven & RL-Based Multi-Item Inventory Management
 
-> **Mục tiêu nghiên cứu:** Xây dựng khung tối ưu hóa tồn kho đa sản phẩm thế hệ mới, tách biệt hoàn toàn hai mô-đun **Dự báo (Forecasting)** và **Tối ưu hóa (Inventory Optimization)**, đồng thời khảo sát tính khả thi của **Học tăng cường (Reinforcement Learning)** trong quản trị tồn kho.
-
-**Đơn vị:** Nhóm Nghiên cứu Khoa học — Trường Kinh tế & Khoa Toán-Tin, ĐHBK Hà Nội (HUST)  
-**Giảng viên hướng dẫn:** ThS. Nguyễn Đắc Việt Hà  
-**Technical Lead:** Nguyễn Đào Nam Hải  
+> **Mục tiêu nghiên cứu:** Xây dựng khung tối ưu hóa tồn kho đa sản phẩm thế hệ mới, tách biệt hoàn toàn hai mô-đun **Dự báo (Forecasting)** và **Tối ưu hóa (Inventory Optimization)**, đồng thời khảo sát tính khả thi của **Học tăng cường (Reinforcement Learning)** trong quản trị tồn kho. 
 
 ---
 
 ## 📌 Mục lục
 
-1. [Bối cảnh & Vấn đề nghiên cứu](#1-bối-cảnh--vấn-đề-nghiên-cứu)
-2. [Cấu trúc thư mục](#2-cấu-trúc-thư-mục)
-3. [Cài đặt môi trường](#3-cài-đặt-môi-trường)
-4. [Quy tắc làm việc nhóm (Git Workflow)](#4-quy-tắc-làm-việc-nhóm-git-workflow)
-5. [Phân công nhiệm vụ (PCCV)](#5-phân-công-nhiệm-vụ-pccv)
-6. [Hướng dẫn đóng góp](#6-hướng-dẫn-đóng-góp)
+1. [Cấu trúc thư mục](#2-cấu-trúc-thư-mục)
+2. [Cài đặt môi trường](#3-cài-đặt-môi-trường)
+3. [Quy tắc làm việc nhóm (Git Workflow)](#4-quy-tắc-làm-việc-nhóm-git-workflow)
 
 ---
 
-## 1. Bối cảnh & Vấn đề nghiên cứu
 
-### Vấn đề tồn tại ở bài báo cũ (v1)
-Bài báo giai đoạn trước xây dựng một pipeline tuần tự ghép nối cứng nhắc:
-```
-Phân loại nhu cầu → Dự báo (LightGBM) → Tồn kho (R,S) → Tối ưu (Knapsack)
-```
-Điều này gây ra **hiện tượng tích lũy sai số (Error Propagation)**: Sai số dự báo bị khuếch đại qua từng khâu, và khi bộ tối ưu hóa cắt giảm lượng đặt hàng để vừa ngân sách, toàn bộ đảm bảo về Safety Stock bị phá vỡ.
-
-### Ba vấn đề nghiên cứu của v2
-
-**Vấn đề 1 — End-to-End Optimization (Tối ưu toàn cục):**
-Thay vì ghép nối tuần tự, cần xây dựng khung tích hợp **Predict-then-Optimize (P&O)** hoặc **Decision-Focused Learning (DFL)** theo hướng tách biệt rõ hai mô-đun:
-- **Module A — Forecasting (Dự báo tốt):** Tập trung cực đại độ chính xác phân phối dự báo (Probabilistic Forecasting), không phụ thuộc vào bài toán tồn kho phía sau.
-- **Module B — Inventory Optimization (Tồn kho tốt):** Nhận dải phân vị dự báo làm đầu vào, tự tối ưu chính sách bổ sung hàng dưới các ràng buộc thực tế (ngân sách, dung tích kho, lead time).
-
-**Vấn đề 2 — Literature Review:**
-Rà soát có hệ thống các nghiên cứu gần đây về cách gộp hai mô-đun Forecasting và Optimization mà vẫn bảo đảm tính độc lập (không bị error propagation), đặc biệt theo hướng:
-- Smart Predict-then-Optimize (SPO)
-- Contextual Stochastic Optimization
-- Data-Driven Newsvendor Problem
-
-**Vấn đề 3 — Reinforcement Learning (RL) cho Inventory:**
-Tìm hiểu xu hướng áp dụng RL (đặc biệt Deep RL: PPO, SAC, DQN) vào bài toán quản trị tồn kho. Đánh giá tính khả thi trong bối cảnh nghiên cứu hiện tại của nhóm (bộ dữ liệu có sẵn, năng lực tính toán, mục tiêu bài báo Q1/Q2).
-
----
-
-## 2. Cấu trúc thư mục
+## 1. Cấu trúc thư mục
 
 ```
 Inventory_Optimization_v2/
@@ -102,7 +69,7 @@ Inventory_Optimization_v2/
 
 ---
 
-## 3. Cài đặt môi trường
+## 2. Cài đặt môi trường
 
 ### Yêu cầu
 - Python **>= 3.10**
@@ -135,7 +102,7 @@ pip install -r requirements.txt
 
 ---
 
-## 4. Quy tắc làm việc nhóm (Git Workflow)
+## 3. Quy tắc làm việc nhóm (Git Workflow)
 
 > ⚠️ **Đọc kỹ và tuân thủ nghiêm ngặt. Vi phạm quy tắc này có thể làm mất code của cả nhóm.**
 
@@ -164,7 +131,7 @@ fix/linhchi/ablation-study-metrics
 
 ### 4.2. Phân quyền rõ ràng
 
-| Hành động | Nam Hải (Tech Lead) | Hải Yến / Tống Hằng / Linh Chi / Diễm Quỳnh |
+| Hành động | Nam Hải | Hải Yến / Tống Hằng / Linh Chi / Diễm Quỳnh |
 | :--- | :---: | :---: |
 | **Push trực tiếp vào `main`** | ✅ | ❌ NGHIÊM CẤM |
 | **Push trực tiếp vào `dev`** | ✅ | ❌ NGHIÊM CẤM |
@@ -263,25 +230,3 @@ git push origin feature/ten-nhanh-cua-ban --force-with-lease
 ❌ NGHIÊM CẤM dùng git push --force (chỉ được dùng --force-with-lease)
 ❌ NGHIÊM CẤM merge PR của chính mình mà chưa được review
 ```
-
----
-
-## 5. Phân công nhiệm vụ (PCCV)
-
-| Thành viên | Vai trò | Nhiệm vụ chính |
-| :--- | :--- | :--- |
-| **Nguyễn Đào Nam Hải** | Technical Lead | Kiến trúc hệ thống, MILP, Code Review, Git Admin |
-| **Tống Thị Hằng** | Research Lead | Literature Review, Research Gap, Research Methodology |
-| **Phan Thị Hải Yến** | ML Engineer | Forecasting: LightGBM, CatBoost, Quantile Regression |
-| **Nguyễn Lâm Diễm Quỳnh** | Product Substitution | Hiệu ứng thay thế / bổ trợ sản phẩm |
-| **Nguyễn Hà Linh Chi** | Experimentation | Ablation Study, Benchmark, Đánh giá chỉ số |
-
----
-
-## 6. Hướng dẫn đóng góp
-
-1. Đọc kỹ [Quy tắc làm việc nhóm](#4-quy-tắc-làm-việc-nhóm-git-workflow).
-2. Kiểm tra Issues đang mở trên GitHub để biết việc nào cần làm.
-3. Mỗi nhiệm vụ bắt đầu bằng việc tạo một Issue → assign cho bản thân → tạo nhánh từ dev.
-4. Khi xong việc → tạo Pull Request → đợi Tech Lead review.
-5. **Câu hỏi kỹ thuật:** Tạo Issue với label `question` hoặc hỏi trực tiếp trong buổi họp định kỳ cuối tuần.
