@@ -38,3 +38,8 @@ Thumbs.db
 # Secrets
 *.env
 secrets.yaml
+
+# Models
+models/
+*.zip
+!reports/tables/*.csv
