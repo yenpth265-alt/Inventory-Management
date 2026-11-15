@@ -119,6 +119,7 @@ class M5SingleItemEnv(gym.Env):
         # Dynamic state variables
         self.t: int = 0
         self.stock: float = 0.0
+        self.current_received: float = 0.0
         self.pipeline: Dict[int, float] = {}
         self.observed_sales: List[float] = []
         self.last_sales: float = 0.0
@@ -141,6 +142,7 @@ class M5SingleItemEnv(gym.Env):
 
         # Arriving orders at day 0
         received = float(self.pipeline.pop(self.t, 0.0))
+        self.current_received = received
         self.stock = float(self.initial_stock) + received
 
         obs = self._get_obs()
@@ -214,7 +216,7 @@ class M5SingleItemEnv(gym.Env):
             "review": review_trigger,
             "cycle": self.t // self.review_period,
             "review_period": self.review_period,
-            "received": float(self.pipeline.get(self.t, 0.0)),
+            "received": self.current_received,
             "on_hand": self.stock,
             "ip": self.stock + sum(outstanding),
             "pipeline": outstanding,
@@ -231,6 +233,7 @@ class M5SingleItemEnv(gym.Env):
             "total_cost": total_cost,
             "inventory_value": end_stock * self.unit_cost,
             "gross_margin": gross_margin,
+            "inference_seconds": 0.0,
             "scored": scored,
         }
         self.step_history.append(step_log)
@@ -247,8 +250,10 @@ class M5SingleItemEnv(gym.Env):
         if not terminated:
             # Receive orders arriving at the beginning of day t
             next_received = float(self.pipeline.pop(self.t, 0.0))
+            self.current_received = next_received
             self.stock = end_stock + next_received
         else:
+            self.current_received = 0.0
             self.stock = end_stock
 
         obs = self._get_obs()
