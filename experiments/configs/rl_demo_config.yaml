@@ -1,0 +1,81 @@
+# ==============================================================================
+# CẤU HÌNH THỰC NGHIỆM RL DEMO: TỐI ƯU HÓA TỒN KHO ĐA KỲ
+# Dự án: Inventory Optimization v2 (HUST NCKH - Scopus Q1/Q2)
+# ==============================================================================
+
+environment:
+  # Cấu hình danh mục & Quy mô
+  num_items: 1                         # Đơn sản phẩm cho kịch bản Demo buổi họp
+  item_name: "FOODS_1_001_CA_1"        # Định danh SKU giả lập theo chuẩn M5
+  max_inventory: 200                   # Sức chứa lưu kho tối đa (V_max tương đương)
+  max_order_quantity: 100              # Lượng đặt hàng tối đa mỗi kỳ (Q_max)
+  
+  # Cửa sổ thời gian & Độ trễ
+  lead_time: 2                         # L = 2 kỳ (khắc phục giả định phi thực tế L=0)
+  review_period: 1                     # Mỗi kỳ đều được kiểm tra và ra quyết định
+  episode_length: 52                   # 52 kỳ (tương đương 1 năm hoạt động theo tuần)
+  lost_sales: true                     # Cơ chế Lost Sales (hàng thiếu mất hẳn, I >= 0)
+
+  # Tham số kinh tế & Chi phí (Đơn vị: USD/unit/period)
+  holding_cost: 1.0                    # h: Chi phí lưu kho 1 đơn vị tồn cuối kỳ
+  lost_sales_penalty: 10.0             # p: Chi phí phạt thiếu 1 đơn vị nhu cầu (p >> h)
+  fixed_ordering_cost: 50.0            # k: Chi phí cố định mỗi lần phát đơn (setup cost)
+  unit_cost: 5.0                       # C: Giá vốn nhập hàng (chuẩn Gross Margin ngành)
+  selling_price: 8.0                   # P: Giá bán lẻ niêm yết (Gross Margin ~ 37.5%)
+
+  # Mô hình hóa Nhu cầu Khách hàng (Stochastic Demand)
+  demand_distribution: "poisson"       # Phân phối Poisson mô tả nhu cầu bán lẻ
+  demand_mean: 20.0                    # Kỳ vọng nhu cầu lambda = 20 đơn vị/kỳ
+
+  # Rời rạc hóa hành động (Action Levels dành cho DQN)
+  action_levels: [0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100]
+
+# Cấu hình Huấn luyện Thuật toán RL (Stable-Baselines3)
+training:
+  algorithm: "PPO"                     # Thuật toán chính: PPO (Proximal Policy Optimization)
+  total_timesteps: 200_000             # Số bước tương tác với môi trường
+  learning_rate: 0.0003                # Tốc độ học (Adam optimizer)
+  n_steps: 2048                        # Số bước thu thập trước mỗi lần update policy
+  batch_size: 64                       # Kích thước mini-batch
+  n_epochs: 10                         # Số epoch tối ưu hóa surrogate objective
+  gamma: 0.99                          # Hệ số chiết khấu phần thưởng dài hạn
+  gae_lambda: 0.95                     # Generalized Advantage Estimation factor
+  clip_range: 0.2                      # PPO clipping parameter
+  seed: 42                             # Hạt giống ngẫu nhiên để cố định tính tái lập
+
+  # Cấu hình DQN phụ trợ (nếu chạy so sánh Discrete)
+  dqn:
+    buffer_size: 50_000
+    learning_starts: 1_000
+    batch_size: 64
+    target_update_interval: 1_000
+    exploration_fraction: 0.2
+    exploration_final_eps: 0.02
+
+# Cấu hình Đánh giá & Đối chuẩn (Benchmarking)
+evaluation:
+  num_eval_episodes: 100               # Đánh giá trên 100 chu kỳ năm độc lập
+  eval_seed_start: 1000                # Dải seed riêng cho tập test (không trùng tập train)
+  baselines:
+    - name: "Random Policy"
+      type: "random"
+    - name: "Base-Stock Policy"
+      type: "base_stock"
+      target_order_up_to: 60           # S* ước lượng = demand * (L + 1)
+    - name: "(s, S) Classical Policy"
+      type: "s_S"
+      reorder_point_s: 30              # Ngưỡng s kích hoạt đặt hàng
+      order_up_to_S: 70                # Mức trần S đặt lên
+  metrics:
+    - "fill_rate"
+    - "cycle_service_level"
+    - "total_cost"
+    - "cost_breakdown"
+    - "gmroi"
+    - "stockout_count"
+
+# Cấu hình Xuất bản & Trực quan hóa
+visualization:
+  style: ["science", "no-latex"]       # SciencePlots style cho báo cáo
+  dpi: 300                             # Độ phân giải in ấn chuẩn Q1
+  save_dir: "experiments/results/plots/"
