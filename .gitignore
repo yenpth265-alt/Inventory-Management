@@ -42,3 +42,4 @@ secrets.yaml
 # Models
 models/
 *.zip
+!reports/tables/*.csv
