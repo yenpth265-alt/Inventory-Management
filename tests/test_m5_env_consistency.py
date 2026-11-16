@@ -182,3 +182,34 @@ class TestM5EnvConsistency:
         assert ref_summary["days"] == 70 - 28 == 42
         assert env_summary["days"] == 42
         assert np.isclose(ref_summary["total_cost"], env_summary["total_cost"], atol=1e-5)
+
+    def test_discrete_action_space(self, sample_demand):
+        """Verify discrete action mapping in M5SingleItemEnv."""
+        h, p, k, lead_time = 0.1, 5.0, 5.0, 2
+        action_levels = [0, 2, 5, 10, 15]
+        env = M5SingleItemEnv(
+            sample_demand,
+            h=h,
+            p=p,
+            k=k,
+            lead_time=lead_time,
+            warmup_days=0,
+            discrete_actions=True,
+            action_levels=action_levels,
+        )
+        assert env.action_space.n == len(action_levels)
+        obs, info = env.reset()
+
+        # Step with action index 2 -> corresponds to quantity 5
+        obs, reward, term, trunc, info = env.step(2)
+        assert info["order"] == 5.0
+        assert info["ordering_cost"] == 5.0
+
+        # Step with action index 0 -> corresponds to quantity 0
+        obs, reward, term, trunc, info = env.step(0)
+        assert info["order"] == 0.0
+        assert info["ordering_cost"] == 0.0
+
+        # Step with numpy scalar
+        obs, reward, term, trunc, info = env.step(np.int64(3))
+        assert info["order"] == 10.0

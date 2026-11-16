@@ -9,7 +9,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 # Add project root to sys.path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -43,6 +43,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--timesteps", type=int, default=100000, help="Total training timesteps.")
     parser.add_argument("--eval_freq", type=int, default=5000, help="Evaluation frequency in steps.")
     parser.add_argument("--seed", type=int, default=2024, help="Random seed.")
+    parser.add_argument("--discrete", action="store_true", default=False, help="Use discrete replenishment action space.")
+    parser.add_argument(
+        "--action_levels",
+        type=int,
+        nargs="+",
+        default=[0, 1, 2, 3, 5, 8, 10, 15, 20],
+        help="Order quantity levels when discrete mode is enabled.",
+    )
+    parser.add_argument("--ent_coef", type=float, default=None, help="PPO entropy coefficient.")
+    parser.add_argument("--lr", type=float, default=3e-4, help="PPO learning rate.")
     parser.add_argument(
         "--output_dir",
         type=str,
@@ -64,11 +74,22 @@ def train_m5_ppo(
     eval_freq: int = 5000,
     seed: int = 2024,
     output_dir: str = "models/m5_ppo",
+    discrete: bool = False,
+    action_levels: Optional[List[int]] = None,
+    ent_coef: Optional[float] = None,
+    learning_rate: float = 3e-4,
 ) -> Dict[str, Any]:
     """Train PPO agent on M5 data and evaluate on validation split."""
+    if action_levels is None:
+        action_levels = [0, 1, 2, 3, 5, 8, 10, 15, 20]
+    if ent_coef is None:
+        ent_coef = 0.05 if discrete else 0.01
+
     print("=" * 70)
     print(f"Starting PPO Training for M5 Inventory Control (K={k})")
     print(f"Data Dir: {data_dir} | Store: {store_id} | Seed: {seed}")
+    print(f"Action Space: {'Discrete ' + str(action_levels) if discrete else 'Continuous Box [0, 200]'}")
+    print(f"Exploration ent_coef: {ent_coef} | Learning rate: {learning_rate}")
     print("=" * 70)
 
     # Set seeds
@@ -129,6 +150,8 @@ def train_m5_ppo(
         lead_time=2,
         warmup_days=28,
         initial_stock=0.0,
+        discrete_actions=discrete,
+        action_levels=action_levels if discrete else None,
     )
     train_env = Monitor(train_env)
 
@@ -142,6 +165,8 @@ def train_m5_ppo(
         lead_time=2,
         warmup_days=0,  # Full 56 days scored on validation
         initial_stock=0.0,
+        discrete_actions=discrete,
+        action_levels=action_levels if discrete else None,
     )
     val_env = Monitor(val_env)
 
@@ -166,7 +191,7 @@ def train_m5_ppo(
     )
 
     # 5. Initialize PPO Agent
-    # Policy gradient actor-critic with continuous Box replenishment order
+    # Policy gradient actor-critic with continuous Box or Discrete action space
     policy_kwargs = dict(
         net_arch=dict(pi=[64, 64], vf=[64, 64]),
         activation_fn=torch.nn.Tanh,
@@ -175,14 +200,14 @@ def train_m5_ppo(
     model = PPO(
         policy="MlpPolicy",
         env=train_env,
-        learning_rate=3e-4,
+        learning_rate=learning_rate,
         n_steps=1024,
         batch_size=64,
         n_epochs=10,
         gamma=0.99,
         gae_lambda=0.95,
         clip_range=0.2,
-        ent_coef=0.01,
+        ent_coef=ent_coef,
         policy_kwargs=policy_kwargs,
         verbose=1,
         seed=seed,
@@ -208,6 +233,10 @@ def train_m5_ppo(
         "train_days": len(train_demand),
         "val_days": len(val_demand),
         "test_days": len(test_demand),
+        "discrete_actions": discrete,
+        "action_levels": action_levels if discrete else None,
+        "ent_coef": ent_coef,
+        "learning_rate": learning_rate,
         "best_model_path": str(best_model_dir / "best_model.zip"),
         "final_model_path": str(final_model_path),
     }
@@ -232,4 +261,8 @@ if __name__ == "__main__":
         eval_freq=args.eval_freq,
         seed=args.seed,
         output_dir=args.output_dir,
+        discrete=args.discrete,
+        action_levels=args.action_levels,
+        ent_coef=args.ent_coef,
+        learning_rate=args.lr,
     )

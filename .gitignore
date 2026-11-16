@@ -6,6 +6,7 @@ data/external/
 *.parquet
 *.h5
 *.pkl
+*.xlsx
 
 # Python
 __pycache__/
