@@ -9,7 +9,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 # Add project root to sys.path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
