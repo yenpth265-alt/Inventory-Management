@@ -6,6 +6,7 @@ Outputs standardized benchmark metrics matching the team's approved plan.
 """
 
 import argparse
+import json
 import os
 import sys
 from pathlib import Path
@@ -190,7 +191,7 @@ def run_benchmark(
         env_rs = M5SingleItemEnv(
             test_demand, prices=test_prices, h=h, p=p, k=k, unit_cost=unit_cost, lead_time=2, warmup_days=0
         )
-        rs_fn = lambda obs, info: classical_policy(best_S_RS)(info["state"])
+        rs_fn = lambda obs, info, S=best_S_RS: classical_policy(S)(info["state"])
         res_rs = evaluate_policy_on_gym_env(env_rs, rs_fn)
 
         records.append(
@@ -217,7 +218,7 @@ def run_benchmark(
         env_rss = M5SingleItemEnv(
             test_demand, prices=test_prices, h=h, p=p, k=k, unit_cost=unit_cost, lead_time=2, warmup_days=0
         )
-        rss_fn = lambda obs, info: classical_policy(best_S_sS, best_s_sS)(info["state"])
+        rss_fn = lambda obs, info, S=best_S_sS, s=best_s_sS: classical_policy(S, s)(info["state"])
         res_rss = evaluate_policy_on_gym_env(env_rss, rss_fn)
 
         records.append(
@@ -251,11 +252,46 @@ def run_benchmark(
         if model_path.exists():
             print(f"Loading PPO checkpoint from: {model_path}")
             ppo_model = PPO.load(str(model_path))
+
+            # Inspect if model was trained with discrete actions
+            summary_path = model_path.parent / "training_summary.json"
+            if not summary_path.exists():
+                summary_path = model_path.parent.parent / "training_summary.json"
+
+            discrete_actions = False
+            action_levels = None
+            if summary_path.exists():
+                try:
+                    with open(summary_path, "r", encoding="utf-8") as f:
+                        saved_cfg = json.load(f)
+                        discrete_actions = bool(saved_cfg.get("discrete_actions", False))
+                        action_levels = saved_cfg.get("action_levels", None)
+                except Exception as e:
+                    print(f"Notice: Failed to read training summary: {e}")
+
+            if hasattr(ppo_model.action_space, "n"):
+                discrete_actions = True
+
             env_ppo = M5SingleItemEnv(
-                test_demand, prices=test_prices, h=h, p=p, k=k, unit_cost=unit_cost, lead_time=2, warmup_days=0
+                test_demand,
+                prices=test_prices,
+                h=h,
+                p=p,
+                k=k,
+                unit_cost=unit_cost,
+                lead_time=2,
+                warmup_days=0,
+                discrete_actions=discrete_actions,
+                action_levels=action_levels,
             )
-            ppo_fn = lambda obs, info: ppo_model.predict(obs, deterministic=True)[0]
+            ppo_fn = lambda obs, info, m=ppo_model: m.predict(obs, deterministic=True)[0]
             res_ppo = evaluate_policy_on_gym_env(env_ppo, ppo_fn)
+
+            param_desc = (
+                f"PPO (Discrete, {len(action_levels or env_ppo.action_levels)} lvls)"
+                if discrete_actions
+                else "Neural Actor-Critic (Continuous)"
+            )
 
             records.append(
                 {
@@ -263,7 +299,7 @@ def run_benchmark(
                     "store_id": store_id,
                     "K": k,
                     "policy": "Deep RL (PPO Agent)",
-                    "params": "Neural Actor-Critic",
+                    "params": param_desc,
                     "total_cost": res_ppo["total_cost"],
                     "holding_cost": res_ppo["holding_cost"],
                     "lost_sales_cost": res_ppo["lost_sales_cost"],
